@@ -46,7 +46,9 @@ def randomizeItemDrops(randomItemD,randomItemDP):
 
 
                     #Write items
-                    randomItemAmount = random.randint(3)
+
+                    randomItemAmount = random.randint(0,3)
+                    """
                     fileBin.seek(entryPos + (x * 0x18), 0)
                     fileBin.seek(2,1)
                     orbSelectionList = []
@@ -56,7 +58,9 @@ def randomizeItemDrops(randomItemD,randomItemDP):
                     for e in range(0xA):
                         if e in orbSelectionList:
                             writeIntOrHex(fileBin,random.randint(0,5),1)#Write amount of orbs to drop
-
+                        else:
+                            fileBin.seek(1, 1)
+"""
                     fileBin.seek(writingPosition,0)
                     for newRandomItems in range(randomItemAmount):
                         writeIntOrHex(fileBin,droppedItemList[newRandomItems],2)
