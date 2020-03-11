@@ -46,14 +46,19 @@ def extractKH2Files(force = False):
                 return True
     else:
         if (os.path.isfile('HasherHD.exe') and (not os.path.isdir('export') or force)):
-            if os.path.isfile('HasherHD.exe'):
-                if os.path.isfile('index.dat'):
-                    os.system("HasherHD.exe --batch --extractmself index.dat " + cfg.config["strings"]["baseRom"])  # Patch AFTER the english because it changes some things
-                    print("Extraction complete.")
-                    return True
+            if os.path.isfile('index.dat'):
+                os.system("HasherHD.exe --batch --extractmself index.dat " + cfg.config["strings"]["baseRom"])  # Patch AFTER the english because it changes some things
+                print("Extraction complete.")
+                return True
+            else:
+                utils.ErrorWindow("No index.dat found! It must be in the same folder.")
+                return False
         else:
-            utils.ErrorWindow("No HasherHD.exe found! It must be in the same folder.")
-            return False
+            if not os.path.isfile('HasherHD.exe'):
+                utils.ErrorWindow("No HasherHD.exe found! It must be in the same folder.")
+                return False
+            else:
+                return True
 
         
 def forceExtractKh2Files():
