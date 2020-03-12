@@ -4,7 +4,7 @@ import random
 import shutil
 import kh2rando_item
 import kh2rando_itemTable
-from utils import ErrorWindow, writeRandomizationLog, readAndUnpack,readUnpackGoBack, readHex, writeIntOrHex,copyKHFile,offSetSeed
+from utils import ErrorWindow, writeRandomizationLog, readAndUnpack,readUnpackGoBack, readHex, writeIntOrHex,copyKHFile,offSetSeed,PS3Version
 from kh2rando_binUtils import findHeaderinBAR
 from kh2rando_writeRandoOutcome import writeOutCome_ItemShop
 def findItemInList(list,itemCode):
@@ -56,7 +56,8 @@ def randomizeShops(shouldIRandomize):
                         if newItem != -1 and item_x.shopPrice != -1:
                             writeIntOrHex(fileBin,item_x.shopPrice,2) #Write new shop buy money
                             writeIntOrHex(fileBin,int(item_x.shopPrice*0.50),2) #Write new shop sell money times 0.50 of buy price
-
-                itemShopBuyingSellingPrices()
-                shopItemChanging()
+                if not PS3Version:
+                    itemShopBuyingSellingPrices()
+                    shopItemChanging()
+            fileBin.close()
 

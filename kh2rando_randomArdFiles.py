@@ -82,32 +82,40 @@ def CheckIfGroupBlackListed(world,room,group):
             return False
     else:
         return False
+def filterUcmProperty(List):
+    for x in UCMProperties:
+        if not x.useEnemyInRandomEnemyGen:
+            List = list(filter(lambda d: (x.code != d.code), List))
+    return List
+def replaceableUCMproperty(UCM,Type):
+    if EnemyPropertyExists(UCM,Type):
+        return EnemyProperty(UCM,Type).replaceEnemyInRandomization
+    else:
+        return True
 def initVar():
     global EnemyList,BossList,SuperBossList,AllyList
     EnemyList = NewEnemyList()
     BossList = NewBossList()
     SuperBossList = NewSuperBossList()
+    SuperBossList = filterUcmProperty(SuperBossList)
     AllyList = NewAllyList()
 def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForced,PS2EnemyOptimizations):
     def ucmPropertyModify(UCM,enemyType):
         fileBin.seek(position, 0)
         if EnemyPropertyExists(UCM,enemyType):
-            ps3Offset = 0
-            if PS3Version():
-                ps3Offset = 2
 
             if EnemyProperty(UCM,enemyType).extraEnemyData != -1:
-                fileBin.seek(0x20+ps3Offset, 1)  # Skip 20, find super boss variable
-                writeIntOrHex(fileBin, EnemyProperty(UCM,enemyType).extraEnemyData, 2)
+                fileBin.seek(0x20, 1)  # Skip 20, find super boss variable
+                writeIntOrHex(fileBin, EnemyProperty(UCM,enemyType).extraEnemyData, 4) #Seems like its 4 bytes.
             else:
-                fileBin.seek(0x20+ps3Offset, 1)  # Skip 20, find super boss variable
-                writeIntOrHex(fileBin, 0, 2)
+                fileBin.seek(0x20, 1)  # Skip 20, find super boss variable
+                writeIntOrHex(fileBin, 0, 4)
             if EnemyProperty(UCM,enemyType).extraEnemyData2 != -1:
                 fileBin.seek(position, 0)
-                fileBin.seek(0x24+ps3Offset, 1)  # Skip 20, find super boss variable
-                writeIntOrHex(fileBin, EnemyProperty(UCM,enemyType).extraEnemyData2, 2)
+                fileBin.seek(0x24, 1)  # Skip 20,move past last variable find super boss variable
+                writeIntOrHex(fileBin, EnemyProperty(UCM,enemyType).extraEnemyData2, 4)
             oldPos = [0,0,0] #Modify XYZ
-            fileBin.seek(position, 0)
+            fileBin.seek(position+4, 0) #Skip UCM digit
             for  i in range(len(oldPos)):
                 oldPos[i] = unpackfromBinaryByte(fileBin.read(4),'f')
             for  i in range(len(oldPos)):
@@ -118,16 +126,7 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
 
 
         fileBin.seek(position, 0)
-    def filterUcmProperty(List):
-        for x in UCMProperties:
-            if not x.useEnemyInRandomEnemyGen:
-                List = list(filter(lambda d: (x.code != d.code), List))
-        return List
-    def replaceableUCMproperty(UCM,Type):
-        if EnemyPropertyExists(UCM,Type):
-            return EnemyProperty(UCM,Type).replaceEnemyInRandomization
-        else:
-            return True
+
     offSetSeed(2)
     filteredBossList = filterUcmProperty(BossList)
     bossListWeights = []
@@ -245,6 +244,8 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
 
                             randomizedUniqueEnemyList = []
                             randomizedUniqueEnemyListcodes = []
+                            EnemiesWrote = 0 #For turning off memory optimizations
+                            MaxEnemies = 6 #For turning off memory optimizations
                             uniqueEnemyList = []
                             enemiesMaxWrittenUsage = [0, 0, 0]
                             enemiesUniqueMaxWrittenUsage = [0, 0, 0]
@@ -391,7 +392,6 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
 
 
                                         if CheckIfEnemyTypeInTable(UCM, boss_table) and ( DataBoss2 != 1) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.Boss):
-                                            type = enemyType.Boss
                                             # get Random boss UCM value here!
                                             enemyToWrite = random.choices(filteredBossList, bossListWeights)
                                             enemyToWrite = enemyToWrite[0]
@@ -400,12 +400,11 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 bossListWeights[index] *= 0.56  # Decrease weight of object we just spawned for lesser chance of being picked next time
                                                 writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                                 fileBin.seek(position, 0)
-                                                ucmPropertyModify(enemyToWrite.code,type)
 
+                                            ucmPropertyModify(enemyToWrite.code, enemyType.Boss)
                                             writeOutCome_Boss(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check)
                                             enemyBTLMSNEdit()
                                         elif CheckIfEnemyTypeInTable(UCM, enemy_table) and randomizeEnemies and replaceableUCMproperty(UCM,enemyType.Normal):
-                                            type = enemyType.Normal
                                             # Get random Enemy UCM value here!
                                             # Choose 3 enemies to put in list as backup
                                             curEnemyList= filterUcmProperty(EnemyList)
@@ -422,11 +421,14 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 for maxwritten in range(len(enemiesMaxWrittenUsage)):  # Filter out if reached maximum enemies allowed
                                                     if randomenemiesWrittenUsage[maxwritten] == enemiesMaxWrittenUsage[maxwritten]:
                                                         currentEnemyList = list(filter(lambda x: (x.memoryUsage != maxwritten), currentEnemyList))
+                                            if not PS2EnemyOptimizations and EnemiesWrote >= MaxEnemies: # If enemy optimizations are off to provide a quick cap
+                                                currentEnemyList = randomizedUniqueEnemyList
 
                                             random.shuffle(currentEnemyList)
                                             enemyToWrite = currentEnemyList[0]
                                             randomenemiesWrittenUsage[enemyToWrite.memoryUsage] += 1
-                                            ucmPropertyModify(enemyToWrite.code, type)
+                                            EnemiesWrote+=1
+                                            ucmPropertyModify(enemyToWrite.code, enemyType.Normal)
                                             writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                             writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM,
                                                                enemyToWrite.name, check)
@@ -438,26 +440,25 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
 
 
                                         elif CheckIfEnemyTypeInTable(UCM, superBoss_table) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.SuperBoss):
-                                            type = enemyType.SuperBoss
-                                            curEnemyList = filterUcmProperty(SuperBossList)
+
                                             # if not (currentWorld.upper() == "HB" and currentRoom == "33" and UCM == 0x933): #SOMEONE put vexen data into a place where he isnt suppost to be
 
-                                            random.shuffle(curEnemyList)
-                                            enemyToWrite = curEnemyList.pop(0)
+                                            random.shuffle(SuperBossList)
+                                            enemyToWrite = SuperBossList.pop(0)
                                             if UCM != enemyToWrite.code:
                                                 writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                                 fileBin.seek(position, 0)
-                                                ucmPropertyModify(enemyToWrite.code,type)
+
+                                            ucmPropertyModify(enemyToWrite.code, enemyType.SuperBoss)
                                             writeOutCome_SuperBoss(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check)
                                             enemyBTLMSNEdit()
                                         elif CheckIfEnemyTypeInTable(UCM, ally_table) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.Ally):
-                                            type = enemyType.Ally
                                             curEnemyList = filterUcmProperty(AllyList)
                                             # if not (currentWorld.upper() == "HB" and currentRoom == "33" and UCM == 0x933): #SOMEONE put vexen data into a place where he isnt suppost to be
 
                                             random.shuffle(curEnemyList)
                                             enemyToWrite = curEnemyList[0]
-                                            ucmPropertyModify(enemyToWrite.code, type)
+                                            ucmPropertyModify(enemyToWrite.code, enemyType.Ally)
                                             writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                             writeOutCome_Ally(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.code, check)
                                         elif UCM == 0x5AB and KH2SoraForced:

@@ -80,16 +80,27 @@ def randomizeEquipmentStats(randomEquipStat,randomEquipAbility):
                     if ifinStatusItem:
                         fileBin.seek(statusPos_Entry+2,0)
                         if randomEquipAbility:
-                            if itemToUse.type == itemType.Equipment or itemToUse.type == itemType.Accessory:
+                            if itemToUse.type == itemType.Equipment or (itemToUse.type == itemType.Accessory and random.randint(0,5) > 4): #If the player is lucky, an ability is added.
                                 abilityID = random.choice(newAbilityList).code
                         if randomEquipStat:
                             if itemToUse.type == itemType.Equipment or itemToUse.type == itemType.Accessory:
-                                statusModifier[EquipmentStats.StrengthStat] = random.randint(1,20)
-                                statusModifier[EquipmentStats.MagicStat] = random.randint(1,20)
+                                chanceList = [random.randint(1, 6), random.randint(1, 10), random.randint(0, 10)]
+                                chanceList_Weight = [0.3, 0.5, 0.2]
+                                newRando = random.choices(chanceList, k=1, weights=chanceList_Weight)[0]
+                                chanceList = [random.randint(1, 6), random.randint(1, 10), random.randint(0, 10)]
+                                newRando2 = random.choices(chanceList, k=1, weights=chanceList_Weight)[0]
+                                statusModifier[EquipmentStats.StrengthStat] = newRando
+                                statusModifier[EquipmentStats.MagicStat] = newRando2
                             if itemToUse.type == itemType.Accessory:
-                                statusModifier[EquipmentStats.APStat] = random.randint(1,30)
+                                chanceList = [random.randint(1, 30), random.randint(1, 10), random.randint(0, 10)]
+                                chanceList_Weight = [0.3, 0.5, 0.2]
+                                newRando = random.choices(chanceList, k=1, weights=chanceList_Weight)[0]
+                                statusModifier[EquipmentStats.APStat] = newRando
                             if itemToUse.type == itemType.Armor:
-                                statusModifier[EquipmentStats.DefenseStat] = random.randint(1,10)
+                                chanceList = [random.randint(1, 5), random.randint(1, 4), random.randint(0, 10)]
+                                chanceList_Weight = [0.3, 0.5, 0.2]
+                                newRando = random.choices(chanceList, k=1, weights=chanceList_Weight)[0]
+                                statusModifier[EquipmentStats.DefenseStat] = newRando
                                 for resistNums in range(4,9):
                                     statusModifier[resistNums] = random.randint(75,150) #Not too OP, but gives the chance of reducing resistance
                                 #for resistNums in range(9,10): #Global resist and invisible stuff so dont go too crazy

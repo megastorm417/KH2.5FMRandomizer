@@ -27,10 +27,9 @@ def randomizeItemDrops(randomItemD,randomItemDP):
                 for x in range(entryAmt):
                     fileBin.seek(entryPos+(x*0x18),0)
                     entryIndex = readAndUnpack(fileBin,2)
-                    writeIntOrHex(fileBin,0,0xA)
                     droppedItemList = [0,0,0]
                     droppedItemListProbability = [0,0,0]
-                    fileBin.seek(0x9,1)
+                    fileBin.seek(0xA,1)
                     writingPosition = fileBin.tell()
                     for i in range(3): #Clear it
                         writeIntOrHex(fileBin,0,2)
@@ -42,7 +41,10 @@ def randomizeItemDrops(randomItemD,randomItemDP):
                             droppedItemList[itemnum] =random.choice(itemDropList).code
                     if randomItemDP:
                         for itemnum in range(len(droppedItemListProbability)):
-                            droppedItemListProbability[itemnum] = random.randint(5,100) # 5% to 100 chance of an item dropping
+                            chanceList = [random.randint(5,100),random.randint(5,50),random.randint(5,25)]
+                            chanceList_Weight = [0.3,0.5,0.2]
+                            newRando = random.choices(chanceList,k=1,weights=chanceList_Weight)[0]
+                            droppedItemListProbability[itemnum] = newRando # 5% to 100 chance of an item dropping
 
 
                     #Write items
@@ -65,4 +67,5 @@ def randomizeItemDrops(randomItemD,randomItemDP):
                     for newRandomItems in range(randomItemAmount):
                         writeIntOrHex(fileBin,droppedItemList[newRandomItems],2)
                         writeIntOrHex(fileBin,droppedItemListProbability[newRandomItems],2)
+            fileBin.close()
 

@@ -137,7 +137,7 @@ boss_table = { ### It's pointless to make multiple bosses for additional cups, s
     'The Experiment'                    :(currentType,                         0x5D0),
     'Grim Reaper'                       :(currentType,                         0x607,enemyMemoryUsage.High),
     'Pete(Part2)'                       :(currentType,                         0x6BC),
-    'Beast(Boss)'                       :(currentType,                         0x2ce),
+    #'Beast(Boss)'                       :(currentType,                         0x2ce),
     #'Shadow Roxas'                     :(currentType,                         0x754),
     'Hostile Program'                   :(currentType,                 0x4B8),
     'Axel I'                            :(currentType,                         0x8B5),
@@ -237,7 +237,7 @@ blackListUniqueID_Enemy = {
         2:{156,157,158}
     },
     'EH':{
-        20:{6,11} #blacklist Final xemnas clones
+        20:{5,10} #blacklist Final xemnas clones
     },
     'BB':{
         5:{20}, #blacklist dark thorn copy
@@ -271,7 +271,7 @@ blackListUCM_List = [0x150,# Destroyable Land Of Dragon objects
 class UCMProperty:
     def __init__(self, code,type=enemyType.Normal,useEnemyInRandomEnemyGen=True,replaceEnemyInRandomization=True,extraEnemyData=-1,extraEnemyData2=-1,extraEnemyDataRandom=False,extraEnemyDataRange=None,PositionOffset=[0,0,0]):
         self.code = code
-        self.type = enemyType.Normal
+        self.type = type
         self.useEnemyInRandomEnemyGen = useEnemyInRandomEnemyGen
         self.replaceEnemyInRandomization = replaceEnemyInRandomization
         self.extraEnemyDataRandom= extraEnemyDataRandom
@@ -293,7 +293,7 @@ UCMProperties = { #Use this to set some properties of certain UCMS. (Use this en
     UCMProperty(0x607,enemyType.Boss,extraEnemyData=0), #Grim reaper property to prevent invinciblity
     UCMProperty(0x8D0,enemyType.Normal,False,True), #Viviclone
     UCMProperty(0x00F,enemyType.Normal,extraEnemyDataRandom=True,extraEnemyDataRange=range(0,3)), #Living Bone random type of enemy
-    UCMProperty(0x85C,enemyType.Boss,True,False,PositionOffset = [0,120,0]), #Armored Xemnas Position Y changing to move to the ground
+    UCMProperty(0x85C,enemyType.Boss,PositionOffset = [0,120,0]), #Armored Xemnas Position Y changing to move to the ground
 
     #Org 13 Normal Boss Properties
     UCMProperty(0x923,enemyType.Boss,extraEnemyData=0),

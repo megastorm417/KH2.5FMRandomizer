@@ -129,10 +129,10 @@ def mainGui():
         else:
             fileGotton = filedialog.askopenfilename(initialdir="/", title="Open Base KH2.5 file",
                                                     filetypes=[("MSELF file", "*.mself")])
-            fileGotton = fileGotton.rstrip()
-            if fileGotton != '':
-                guiVars['baseRom'].set(fileGotton)
-                guiVarsToSave()
+        fileGotton = fileGotton.rstrip()
+        if fileGotton != '':
+            guiVars['baseRom'].set(fileGotton)
+            guiVarsToSave()
 
 
     def openEnglishPatch():
