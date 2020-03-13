@@ -65,3 +65,36 @@ def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission 
     else:
         print("Couldn't find msn file to copy...")
         return fileName
+def msnFileCreate_NonBoss(oldMsnFileName): #Non boss version of creating a mission file
+    oldMsnFileName = oldMsnFileName.rstrip(' \t\r\n\0')
+    newFileName = oldMsnFileName + '_R' #Add _R so we dont overwrite missions (_R == Randomized)
+    importFolderName = "export/KH2/msn/jp/"
+    if PS3Version():
+        importFolderName = "export/msn/us/"
+    exportFolderName = "msn/jp/"
+    if PS3Version():
+        exportFolderName = "msn/us/"
+    if os.path.isfile(importFolderName + oldMsnFileName+ ".bar"):
+        shutil.copyfile(importFolderName + oldMsnFileName+ ".bar", exportFolderName + newFileName + ".bar")
+        print("Copying file...")
+        writeRandomizationLog(exportFolderName + newFileName + ".bar")
+
+        fileBin = open(exportFolderName + newFileName + ".bar",'rb+')
+
+        ModifyExtraFileNames(fileBin,oldMsnFileName,newFileName)
+        #replaceAllStringInFile(fileBin,fileName.lower(),newFileName.lower())
+        fileBin.close()
+        if PS3Version():
+            for x in regionFolders:
+                filestring = 'msn/' + x + "/" + newFileName + '.bar'
+                if not os.path.exists('msn/' + x + '/'):
+                    os.makedirs('msn/' + x + '/')
+                shutil.copyfile(exportFolderName + newFileName + ".bar", filestring)
+                print("Copying file for another region...")
+                writeRandomizationLog(filestring)
+
+
+        return exportFolderName + newFileName + ".bar"
+    else:
+        print("Couldn't find msn file to copy...")
+        return importFolderName + oldMsnFileName+ ".bar"

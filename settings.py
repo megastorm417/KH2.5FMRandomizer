@@ -20,7 +20,7 @@ config["variables"] ={
         "RandomizeCritBonusAbilities" : True,
         "SkipGummishipMission" : True,
         "GuardFirst" : True,
-        "PS2EnemyOptimizations" : True,
+        "EnemyOptimizations" : True,
         "RandomizeItemDrop" : True,
         "RandomizeItemDropPercentage" : True,
         "RandomizeEquipmentStats" : True,

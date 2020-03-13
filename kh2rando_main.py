@@ -153,7 +153,7 @@ def randomizeNewRun():
                              cfg.config["variables"].getboolean("RandomizeBosses"),
                              cfg.config["variables"].getboolean("RandomizeAllies"),
                              cfg.config["variables"].getboolean("KH2SoraForced"),
-                             cfg.config["variables"].getboolean("PS2EnemyOptimizations"))
+                             cfg.config["variables"].getboolean("EnemyOptimizations"))
                 randomizeMusic(cfg.config["variables"].getboolean("RandomizeMusic"))
                 randomizeItemDrops(cfg.config["variables"].getboolean("RandomizeItemDrop"),cfg.config["variables"].getboolean("RandomizeItemDropPercentage"))
                 randomizeEquipmentStats(cfg.config["variables"].getboolean("RandomizeEquipmentStats"),cfg.config["variables"].getboolean("RandomizeEquipmentAbilities"))

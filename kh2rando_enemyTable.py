@@ -93,9 +93,9 @@ enemy_table = {
     'Creeper Plant(EX)':(currentType,                       0x72D,enemyMemoryUsage.High),
     'Soldier(HW)':(currentType,                             0x72E),
     'Soldier(EX)':(currentType,                             0x72F),
-    'Shadow (TR)':(currentType,                             0x730),
-    'Shadow (HW)':(currentType,                             0x731),
-    'Shadow(TR2)':(currentType,                             0x732),
+    'Shadow (TR)':(currentType,                             0x730,enemyMemoryUsage.Low),
+    'Shadow (HW)':(currentType,                             0x731,enemyMemoryUsage.Low),
+    'Shadow(TR2)':(currentType,                             0x732,enemyMemoryUsage.Low),
     'Rapid Thruster(TR)':(currentType,                      0x733,enemyMemoryUsage.Low),
     'Armored Knight(EX)':(currentType,                      0x735,enemyMemoryUsage.Low),
     'Surveillance Robot(EX)':(currentType,                  0x737),
@@ -104,7 +104,7 @@ enemy_table = {
     #'Hook Bat (EX)':(currentType,                          0x75F),
     'Large Body(TR)':(currentType,                          0x7E9,enemyMemoryUsage.High),
     #'Scar’s Ghost':(currentType,                           0x833),
-    'Bolt Tower(LOD)':(currentType,                         0x8BE),
+    'Bolt Tower(LOD)':(currentType,                         0x8BE,enemyMemoryUsage.Low),
     'Vivi (Clone)':(currentType,                            0x8D0,enemyMemoryUsage.Medium),
     'Magic Phantom':(currentType,                           0x963),
     'Beffudler':(currentType,                               0x964),
@@ -137,10 +137,10 @@ boss_table = { ### It's pointless to make multiple bosses for additional cups, s
     'The Experiment'                    :(currentType,                         0x5D0),
     'Grim Reaper'                       :(currentType,                         0x607,enemyMemoryUsage.High),
     'Pete(Part2)'                       :(currentType,                         0x6BC),
-    #'Beast(Boss)'                       :(currentType,                         0x2ce),
+    'Beast(Boss)'                       :(currentType,                         0x2ce),
     #'Shadow Roxas'                     :(currentType,                         0x754),
     'Hostile Program'                   :(currentType,                 0x4B8),
-    'Axel I'                            :(currentType,                         0x8B5),
+    #'Axel I'                            :(currentType,                         0x8B5),
     'Old Pete'                            :(currentType,                         0x647),
     'Hades(Cups)'                       :(currentType,                         0x90E),
     'Pete(ChampionFight)'               :(currentType,                         0x90F),
@@ -253,7 +253,7 @@ blackListUniqueID_Enemy = {
 }
 blackListGroup_Enemy = {
     'MU':{
-        2:{'b_45'}, #Weird fight where things break A TON
+        5:{'b_40'}, #Weird fight where things break A TON
      },
     'CA':{
         1:{'b_40'}, # Pirates losing fight & softlock loading in afterwards
@@ -262,9 +262,9 @@ blackListGroup_Enemy = {
         #5:{'b_40'}, #black list hades escape, runs out of memory frequently
     #},
 }
-blackListUCM_List = [0x150,# Destroyable Land Of Dragon objects
-                     0x14e,
-                     0x14f,
+blackListUCM_List = [#0x150,# Destroyable Land Of Dragon objects
+                     #0x14e,
+                     #0x14f,
                      0x016,# Hayabusa Shan-Yu Fight
                      ] #These are ucms blacklisted/removed for improved memory performance
 
@@ -282,7 +282,7 @@ class UCMProperty:
         if self.extraEnemyDataRandom:
             self.extraEnemyData = random.choice(self.extraEnemyDataRange)
 UCMProperties = { #Use this to set some properties of certain UCMS. (Use this enemy in random enemy generation, Use this enemy if we should replace it for randomization)
-    UCMProperty(0x8B5,enemyType.Boss,False,True),#Axel 1
+    #UCMProperty(0x8B5,enemyType.Boss,False,True),#Axel 1
     UCMProperty(0x647,enemyType.Boss,False,True),#Old Pete
     UCMProperty(0x6BC,enemyType.Boss,False,True),#Old Pete
     UCMProperty(0x90F,enemyType.Boss,False,True),#Old Pete
@@ -290,7 +290,8 @@ UCMProperties = { #Use this to set some properties of certain UCMS. (Use this en
     UCMProperty(0x453,enemyType.Normal,False,True),#Pirates A
     UCMProperty(0x454,enemyType.Normal,False,True),#B
     UCMProperty(0x455,enemyType.Normal,False,True),#C
-    UCMProperty(0x607,enemyType.Boss,extraEnemyData=0), #Grim reaper property to prevent invinciblity
+    UCMProperty(0x607,enemyType.Boss,extraEnemyData=1,extraEnemyData2=0), #Grim reaper property to prevent invinciblity
+    UCMProperty(0x2ce,enemyType.Boss,False,True), #Beast fight
     UCMProperty(0x8D0,enemyType.Normal,False,True), #Viviclone
     UCMProperty(0x00F,enemyType.Normal,extraEnemyDataRandom=True,extraEnemyDataRange=range(0,3)), #Living Bone random type of enemy
     UCMProperty(0x85C,enemyType.Boss,PositionOffset = [0,120,0]), #Armored Xemnas Position Y changing to move to the ground
@@ -302,7 +303,7 @@ UCMProperties = { #Use this to set some properties of certain UCMS. (Use this en
     UCMProperty(0x951,enemyType.Boss,extraEnemyData=0),
     UCMProperty(0x962,enemyType.Boss,extraEnemyData=0),
     UCMProperty(0x97B,enemyType.Boss,extraEnemyData=0),
-    UCMProperty(0x051,enemyType.Boss,extraEnemyData=0),
+    UCMProperty(0x051,enemyType.Boss,replaceEnemyInRandomization=False,extraEnemyData=0),
     UCMProperty(0x8F7,enemyType.Boss,extraEnemyData=0),
     UCMProperty(0x6C9,enemyType.Boss,extraEnemyData=0),
     UCMProperty(0x3E5,enemyType.Boss,extraEnemyData=0),

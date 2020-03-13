@@ -8,7 +8,7 @@ from utils import writeRandomizationLog, readHex, readHexPure, readAndUnpack,rea
 from kh2rando_binUtils import findHeaderinBAR,ReverseEndianString,findBarHeader
 from kh2rando_writeRandoOutcome import writeOutCome_Enemy,writeOutCome_Boss,writeOutCome_SuperBoss,writeOutCome_Ally
 from kh2rando_enemyTable import blackListUniqueID_Enemy,blackListGroup_Enemy,bossMSNTable,superBoss_table,boss_table,enemy_table,ally_table,blackListUCM_List,UCMProperties
-from kh2rando_msnFile import msnFileCreate
+from kh2rando_msnFile import msnFileCreate,msnFileCreate_NonBoss
 from kh2rando_musicList import musicList,blackList_musicID
 
 from kh2rando_ucmObject import NewEnemyList,NewBossList,NewSuperBossList,NewAllyList
@@ -100,6 +100,42 @@ def initVar():
     SuperBossList = filterUcmProperty(SuperBossList)
     AllyList = NewAllyList()
 def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForced,PS2EnemyOptimizations):
+
+    def FixMulanMSNSoftlock():
+        findHeaderinBAR(fileBin, 'btl', True)
+        stringToFind = ReverseEndianString('MU02_MS103B', 2, True,True).encode()
+        posBefore = fileBin.tell()
+        readData = fileBin.read()
+        newPos = readData.find(stringToFind)
+        fileBin.seek(posBefore + newPos, 0)
+        #MSNFile text ID location : 0x14 from the first position == textid
+        #MSNFile Help/Continue Pause button toggler: 0x16 from first position and needs to be 0x18 to work
+        """
+        What mission file seems to determine:
+        First Mission Bar Entry:
+        If enemies should drop items
+        How pausing should work
+        What text ID to display on the information tab
+        
+        Second Mission Bar Entry:
+        ???
+        Probably controls when enemies should attack during the camera movement phase
+        Anything Else after these two entries:
+        Camera Movement & Panning at the start of the mission 
+        What images should be displayed EX: Luxord time bar, Mulan's Heartless Count and Motivation bar
+        
+        Seems like how enemies should spawn in is determined by ARD files not by MSN files
+        
+        MSN Files are loaded through reference in the ard file from 'BTL' and usually is assigned to an entry starting with 'b_'
+"""
+        newMSNFile_Location = msnFileCreate_NonBoss('MU02_MS103A')
+        fileBin.write(ReverseEndianString('MU02_MS103A_R', 2, True, True).encode())
+        MsnFileBin = open(newMSNFile_Location, 'rb+')
+        findHeaderinBAR(MsnFileBin, 'MU02', True)
+        MsnFileBin.seek(0x38, 1)
+        writeIntOrHex(MsnFileBin, 0x0C, 4)
+        MsnFileBin.close()
+
     def ucmPropertyModify(UCM,enemyType):
         fileBin.seek(position, 0)
         if EnemyPropertyExists(UCM,enemyType):
@@ -188,6 +224,8 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
         if copyKHFile(filename):
             writeRandomizationLog(filename)
             fileBin = open(filename, 'rb+')
+            if currentWorld.upper() == 'MU' and currentRoom == '02':
+                FixMulanMSNSoftlock()
             barHeaderOffset=  findBarHeader(fileBin)
             fileBin.seek(barHeaderOffset+0x4,0)
             noEntries = readAndUnpack(fileBin,4);
@@ -245,7 +283,7 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                             randomizedUniqueEnemyList = []
                             randomizedUniqueEnemyListcodes = []
                             EnemiesWrote = 0 #For turning off memory optimizations
-                            MaxEnemies = 6 #For turning off memory optimizations
+                            MaxEnemies = 4#For turning off memory optimizations
                             uniqueEnemyList = []
                             enemiesMaxWrittenUsage = [0, 0, 0]
                             enemiesUniqueMaxWrittenUsage = [0, 0, 0]
@@ -280,14 +318,14 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                     #EntryLimit = (EntryPositions[l] + EntrySizes[l])
                                     #if(position > EntryLimit)
                                     fileBin.seek(position,0)
-                                    ps3Offset = 0
-                                    if PS3Version():
-                                        ps3Offset = 2
                                     UCM = readUnpackGoBack(fileBin,4)
-                                    fileBin.seek(0x20+ps3Offset,1) #Skip 20, find if its a super boss version of a regular boss or not.
-                                    DataBoss = readUnpackGoBack(fileBin,2)
-                                    fileBin.seek(0x4, 1)  # Skip 20, find super boss variable
-                                    DataBoss2 = readUnpackGoBack(fileBin, 2)
+                                    fileBin.seek(0x20,1) #Skip 20, find if its a super boss version of a regular boss or not.
+                                    #Spawn Order Group Byte
+                                    #Spawn Order Sub Group Byte
+                                    #writeIntOrHex(fileBin,8*b,2)#2 bytes --- Enemy Unique Spawn ID, size doesn't matter here only if it was unique or not or else the game wont spawn the character object and it wont be counted against winning the mission
+
+                                    DataBoss = readAndUnpack(fileBin,4)
+                                    DataBoss2 = readAndUnpack(fileBin, 4)
                                     #avoidUCMList = [0x237,0x238,0x319,0x31A,0x3EE] this is obsolete.
                                     if(not CheckIfEnemyBlackListed(currentWorld,currentRoom,UniqueEnemyID) and not CheckIfGroupBlackListed(currentWorld,currentRoom,check) ):
                                         fileBin.seek(position,0)  
@@ -392,6 +430,8 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
 
 
                                         if CheckIfEnemyTypeInTable(UCM, boss_table) and ( DataBoss2 != 1) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.Boss):
+                                            if currentWorld.upper() == 'HB' and currentRoom == '33':
+                                                hiDebug = 0
                                             # get Random boss UCM value here!
                                             enemyToWrite = random.choices(filteredBossList, bossListWeights)
                                             enemyToWrite = enemyToWrite[0]
@@ -624,12 +664,17 @@ def removeEnemySpawnLimit(EnemiesWereRandomized):
                 Object_STR = (fileBin.read(0x20)).decode("utf-8") #PS3 Version Name endian order was left unchanged.
                 ObjectMSET_STR = (fileBin.read(0x20)).decode("utf-8")
                 fileBin.seek(0xC, 1)  # Skip to spawn limit value
-                if CheckIfEnemyTypeInTable(UCM,enemy_table) and Object_STR[:2] == "M_":
-                    writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
-                if CheckIfEnemyTypeInTable(UCM,boss_table) or CheckIfEnemyTypeInTable(UCM,superBoss_table) and Object_STR[:2] == "B_":
-                    writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
-                if CheckIfEnemyTypeInTable(UCM,ally_table) and Object_STR[:2] == "N_":
-                    writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
+                previousWeightValue = readUnpackGoBack(fileBin, 1)
+                if previousWeightValue > enemyWeightValue: #???
+                    if CheckIfEnemyTypeInTable(UCM,enemy_table) and Object_STR[:2] == "M_":
+                        writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
+                    if CheckIfEnemyTypeInTable(UCM,boss_table) or CheckIfEnemyTypeInTable(UCM,superBoss_table) and Object_STR[:2] == "B_":
+                        writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
+                    if CheckIfEnemyTypeInTable(UCM,ally_table) and Object_STR[:2] == "N_":
+                        writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
+
+
+
 def removeDMFromBosses():
     #here we will remove ai functions from bosses that are problematic.
     removeAIFunction('obj/B_EX170.mdlx','rc_invitation_to_dark') #Remove xemnas skyscraper rc battle thing
@@ -639,12 +684,6 @@ def removeDMFromBosses():
     removeAIFunction('obj/B_EX140.mdlx','change_space_battle') #Get rid of Xigbar room changing aspects
     removeAIFunction('obj/B_EX140.mdlx','change_space') #Get rid of Xigbar room changing aspects
 
-    removeAIFunction('obj/P_BB000_BTL.mdlx','‰rc_heart_drive_movement') #Beast reaction command thing where he knocks out
-    removeAIFunction('obj/P_BB000_BTL.mdlx','rc_heart_beat_stop')
-    removeAIFunction('obj/P_BB000_BTL.mdlx','rc_heart_beat')
-    removeAIFunction('obj/P_BB000_BTL.mdlx','rc_heart_drive_charge_stop')
-    removeAIFunction('obj/P_BB000_BTL.mdlx','rc_heart_drive_charge')
-    removeAIFunction('obj/P_BB000_BTL.mdlx','rc_heart_drive_movement_stop')
     if PS3Version():
         removeAIFunction('obj/B_BB110.mdlx','‰sora_downshock!') #Dark Thorn Boss
         removeAIFunction('obj/B_BB110.mdlx','sora_spin!') #Dark Thorn Boss

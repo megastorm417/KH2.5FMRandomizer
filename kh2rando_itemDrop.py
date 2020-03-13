@@ -48,8 +48,8 @@ def randomizeItemDrops(randomItemD,randomItemDP):
 
 
                     #Write items
-
-                    randomItemAmount = random.randint(0,3)
+                    chanceList = [0,1,2,3]
+                    randomItemAmount = random.choices(chanceList,k=1,weights=[0.7,0.3,0.2,0.1])[0]
                     """
                     fileBin.seek(entryPos + (x * 0x18), 0)
                     fileBin.seek(2,1)

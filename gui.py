@@ -276,9 +276,9 @@ def mainGui():
                                      listItemNum, 0)
         listItemNum += 1
         createARandomizeToggleButton(frames['MiscToggles'],
-                                     "PS2 enemy optimiziation",
-                                     'PS2EnemyOptimizations',
-                                     'While this is on, enemies are categorized into low, medium and high memory objects.\nTurn this off if you want completely random enemies for every spawn.\nHowever, Turning this off is not recommended for PS2 as it may crash on room loads and other bugs.',
+                                     "Enemy optimiziations",
+                                     'EnemyOptimizations',
+                                     'While this is on, enemies are categorized into low, medium and high memory objects.\nTurn this off if you want completely random enemies for every spawn.\nHowever, Turning this off may cause bugs with spawning enemies .',
                                      listItemNum, 0)
         listItemNum += 1
         miscTogglesSize = listItemNum
