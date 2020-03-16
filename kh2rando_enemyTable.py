@@ -33,7 +33,7 @@ enemy_table = {
     'Wight Knight':(currentType,                            0x076),
     'Wight Knight(HW)':(currentType,                        0x077),
     'Neoshadow':(currentType,                               0x078),
-    #'Magnum Loader':(currentType,                          0x079),
+    'Magnum Loader':(currentType,                          0x079),
     'Morning Star':(currentType,                            0x07A,enemyMemoryUsage.High),
     'Tornado Step':(currentType,                            0x07B,enemyMemoryUsage.Low),
     'Crescendo':(currentType,                               0x07C),
@@ -272,6 +272,9 @@ blackListGroup_Enemy = {
      },
     'CA':{
         1:{'b_40'}, # Pirates losing fight & softlock loading in afterwards
+     },
+    'PO':{
+        9:{'b_99'}, # Black list poo searching minigame
      },
     #'HE':{
         #5:{'b_40'}, #black list hades escape, runs out of memory frequently
