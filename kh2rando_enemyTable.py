@@ -39,7 +39,7 @@ enemy_table = {
     'Crescendo':(currentType,                               0x07C),
     'Creeper Plant':(currentType,                           0x07D,enemyMemoryUsage.High),
     'Soldier':(currentType,                                 0x12D),
-    'Shadow (TwTown)':(currentType,                         0x12E,enemyMemoryUsage.Low),
+    'Shadow':(currentType,                         0x12E,enemyMemoryUsage.Low),
     'Large Body':(currentType,                              0x12F,enemyMemoryUsage.High),
     'Rapid Thruster':(currentType,                          0x130),
     'Armored Knight':(currentType,                          0x131),
@@ -58,8 +58,8 @@ enemy_table = {
     'Gargoyle Warrior':(currentType,                        0x170,enemyMemoryUsage.High),
     'Strafer':(currentType,                                 0x45A,enemyMemoryUsage.Low),
     'Demyx\'s Water Clone (Norm)':(currentType,             0x4A0,enemyMemoryUsage.Low),
-    'Shadow':(currentType,                                  0x4C4,enemyMemoryUsage.Low),
-    'Shadow (Dif)':(currentType,                            0x555,enemyMemoryUsage.Low),
+    'Shadow (HW)':(currentType,                                  0x4C4,enemyMemoryUsage.Low),
+    'Shadow (Raw)':(currentType,                            0x555,enemyMemoryUsage.Low),
     #'Armored Knight (1,000Heartless)':(currentType,         0x5BC,enemyMemoryUsage.Low),
     #'Surveillance Robot (1,000Heartless)':(currentType,     0x5BD),
     #'Bees':(currentType,                                   0x625),
@@ -89,7 +89,7 @@ enemy_table = {
     'Driller Mole(EX)':(currentType,                        0x729,enemyMemoryUsage.Low),
     'Emerald Blues(EX)':(currentType,                       0x72A,enemyMemoryUsage.High),
     'Bookmaster (EX)':(currentType,                         0x72B,enemyMemoryUsage.High),
-    'Neoshadow(EX)':(currentType,                           0x72C),
+    'Neoshadow(HW)':(currentType,                           0x72C),
     'Creeper Plant(EX)':(currentType,                       0x72D,enemyMemoryUsage.High),
     'Soldier(HW)':(currentType,                             0x72E),
     'Soldier(EX)':(currentType,                             0x72F),
@@ -132,7 +132,7 @@ boss_table = { ### It's pointless to make multiple bosses for additional cups, s
     'Scar'                              :(currentType,                         0x29C),
     'Volcanic Lord'                     :(currentType,                         0x40B),
     'Blizzard Lord'                     :(currentType,                         0x40C),
-    #'Groundshaker'                      :(currentType,                         0x459),
+
     'Prison Keeper'                     :(currentType,                         0x5CE),
     'The Experiment'                    :(currentType,                         0x5D0),
     'Grim Reaper'                       :(currentType,                         0x607,enemyMemoryUsage.High),
@@ -142,9 +142,23 @@ boss_table = { ### It's pointless to make multiple bosses for additional cups, s
     'Hostile Program'                   :(currentType,                 0x4B8),
     #'Axel I'                            :(currentType,                         0x8B5),
     'Old Pete'                            :(currentType,                         0x647),
+    'Pete (Timeless River fight with Other Pete)'                      :(currentType,                         0x167 ),
+    'Pete (Boat Ver)'                      :(currentType,                         0x6BA ),
     'Hades(Cups)'                       :(currentType,                         0x90E),
     'Pete(ChampionFight)'               :(currentType,                         0x90F),
     'Hercules'                          :(currentType,                         0x910),
+    'Leon (Boss)'   :(currentType,                         0x8F8),
+    'Cloud (Boss)' :(currentType,                         0x8F9),
+    'Tifa (Boss)' :(currentType,                         0x8FA),
+    'Yuffie (Boss)'  :(currentType,                         0x8FB),
+    'Sark'  :(currentType,                         0x35E),
+
+    """LARGE BOSSES:"""
+    #'Storm Rider'  :(currentType,                         0x165),
+    #'Hydra'  :(currentType,                         0x160),
+    #'Hostile Program'  :(currentType,                         0x4B8),
+    #'Groundshaker'                      :(currentType,                         0x459),
+    #'Pete (Boat Ver)'                      :(currentType,                         0x6ba ),
     #Org 13 Normal Boss Encounters
     'Marluxia'                          :(currentType,                         0x923,enemyMemoryUsage.High),
     'Vexen'                             :(currentType,                         0x933,enemyMemoryUsage.High),
@@ -226,7 +240,8 @@ blackListUniqueID_Enemy = {
     },
     'HE':{
         8:{41}, #blacklist 2nd pete fight too low of memory
-        9:{11} #Blacklist hercules ally from randomization
+        9:{11}, #Blacklist hercules ally from randomization
+        19:{11} #Blacklist hercules ally from randomization
     },
     #'MU':{
         #2:{85,86,87,91,92,95,96},#????
@@ -246,8 +261,8 @@ blackListUniqueID_Enemy = {
     'NM':{
         7:{11}, #blacklist the experiment clone thingy
     },
-    'CA':{
-        18:{9}, #blacklist the clone of the grim reaper
+    'LK':{
+        2:{13}, #Black list Pumba protection mission
     }
 
 }
@@ -284,8 +299,10 @@ class UCMProperty:
 UCMProperties = { #Use this to set some properties of certain UCMS. (Use this enemy in random enemy generation, Use this enemy if we should replace it for randomization)
     #UCMProperty(0x8B5,enemyType.Boss,False,True),#Axel 1
     UCMProperty(0x647,enemyType.Boss,False,True),#Old Pete
-    UCMProperty(0x6BC,enemyType.Boss,False,True),#Old Pete
-    UCMProperty(0x90F,enemyType.Boss,False,True),#Old Pete
+    UCMProperty(0x6BC,enemyType.Boss,False,True),#Part 2 Pete
+    UCMProperty(0x90F,enemyType.Boss,False,True),#Champion Fight Pete
+    UCMProperty(0x167,enemyType.Boss,False,True),#Pete fight with other past pete
+    UCMProperty(0x6BA,enemyType.Boss,False,True),#Pete fight on boat
     UCMProperty(0x4B8,enemyType.Boss,False,True),#Hostile Program
     UCMProperty(0x453,enemyType.Normal,False,True),#Pirates A
     UCMProperty(0x454,enemyType.Normal,False,True),#B

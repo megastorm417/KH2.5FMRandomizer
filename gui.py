@@ -247,7 +247,7 @@ def mainGui():
         createARandomizeToggleButton(frames['MiscToggles'],
                                      "Randomize Music",
                                      'RandomizeMusic',
-                                     'Randomizes MOST of the music in the game.\nNOTE: This unfortunately affects game stability in some scenarios.',
+                                     'Randomizes MOST of the music in the game.\nNOTE: This unfortunately affects game stability in some scenarios.\nSpecifically on the PS2 Version.',
                                      listItemNum, 0)
         listItemNum+=1
 
@@ -298,6 +298,30 @@ def mainGui():
                                      'An extra amount of abilities more than the base game gives. \nGives the most possible through bonus levels. \nOnly abilities that stack are added aswell.',
                                      listItemNum, 0)
         listItemNum += 1
+
+    def SuperBossButtons():
+        listItemNum = 0
+        createARandomizeRadButton(frames['AdditionalSuperBossButtons'],
+                                  "No Random Super Boss",
+                                  'SuperBossEncounterRate',
+                                  0,
+                                  'Super bosses will appear predictably in a run. (Only Data Org, Sephiroth, LW fights are randomized)',
+                                  listItemNum, 0)
+        listItemNum += 1
+        createARandomizeRadButton(frames['AdditionalSuperBossButtons'],
+                                  "Random Super Boss Encounter Chance",
+                                  'SuperBossEncounterRate',
+                                  1,
+                                  'Super bosses will have a low chance (0.07%) to replace a boss in addition to being randomized as normally.',
+                                  listItemNum, 0)
+        listItemNum += 1
+        createARandomizeRadButton(frames['AdditionalSuperBossButtons'],
+                                  "Higher Encounter Chance",
+                                  'SuperBossEncounterRate',
+                                  2,
+                                  'Super bosses will have twice the encounter rate.',
+                                  listItemNum, 0)
+        listItemNum += 1
     def creditToggles():
         listItemNum = 0
         CreditLabel = Label(currentBase, text="Credits/Special Thanks:")
@@ -326,7 +350,7 @@ def mainGui():
     #KH_Label.pack()
     frames['OuterFrame'] = Frame(main_Window)
     frames['OuterFrame'].pack(side=BOTTOM)
-    notebook_kh = Notebook(main_Window,width=448,height=312,padding=5)
+    notebook_kh = Notebook(main_Window,width=512,height=312,padding=5)
     notebook_kh.pack()
     #frames['randomizeTab'] = ttk.Frame(notebook)
     frames['optionTab'] = Frame(notebook_kh, relief=RIDGE, borderwidth=3)
@@ -397,15 +421,18 @@ def mainGui():
     frames['Directories'].pack(side=BOTTOM)
     frames['MainToggles'] = LabelFrame(frames['randomizeTab'], text="Main Toggles", labelanchor=NW)
     frames['MiscToggles'] = LabelFrame(frames['randomizeTab'], text="Misc", labelanchor=NW)
-    frames['AdditionalButtons'] = LabelFrame(frames['MiscToggles'], text="Additional", labelanchor=NW)
+    frames['AdditionalButtons'] = LabelFrame(frames['MiscToggles'], text="Additional Abilities", labelanchor=NW)
+    frames['AdditionalSuperBossButtons'] = LabelFrame(frames['MiscToggles'], text="Super Boss Encounter", labelanchor=NW)
     """Add options to toggle on randomization of certain things, such as bosses """
     mainToggles()
     miscToggles()
     AdditionalButtons()
+    SuperBossButtons()
 
     frames['MainToggles'].grid(row = 0 ,column = 0,sticky = "NW")
     frames['MiscToggles'].grid(row = 0 ,column = 1,sticky = "NW")
     frames['AdditionalButtons'].grid(row = miscTogglesSize ,column = 0,sticky = "NW")
+    frames['AdditionalSuperBossButtons'].grid(row = miscTogglesSize+1 ,column = 0,sticky = "NW")
     frames['randomizeTab'].pack(fill=BOTH,expand=1)
     
     

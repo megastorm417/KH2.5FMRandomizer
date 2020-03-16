@@ -153,7 +153,7 @@ def closeKHText(file,strings):
     newMd_mPos = fileBin.tell() -offset
 
     fileBin.write(md_m_Data)
-    ModifyExtraFilePosition(fileBin, fileBin.tell(),newMd_mPos+offset) #we want relative positions to 0,0 of the file.
+    ModifyExtraFilePosition(fileBin, fileBin.tell()) #we want relative positions to 0,0 of the file.
     fileBin.write(miscData)
     fileBin.seek(startReadingPos, 0) #Go back to the start with ids and positions
     for x in strings:

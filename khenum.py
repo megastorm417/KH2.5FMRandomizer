@@ -41,7 +41,7 @@ class enemyType(IntEnum):
     Normal = 0
     Ally = 1
     Boss =2
-    SuperBoss =2
+    SuperBoss =3
     #AbilityItem = 6
     #AbilityItem2 = 7
 class itemType(IntEnum):

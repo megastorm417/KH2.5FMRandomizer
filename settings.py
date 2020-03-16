@@ -31,6 +31,7 @@ config['intvars'] = {
 #radio button
         "RandomAbilityAmount" : 1,
         "CurrentGameVersion" : 0,
+        "SuperBossEncounterRate" : 0,
 
 
 }

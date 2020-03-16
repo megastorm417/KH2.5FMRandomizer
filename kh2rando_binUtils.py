@@ -2,7 +2,7 @@ import shutil
 import os
 import os.path
 import random
-from utils import ErrorWindow, writeRandomizationLog, readAndUnpack, readHex, writeIntOrHex,copyKHFile,getGameVersion,PS3Version
+from utils import ErrorWindow, writeRandomizationLog, readAndUnpack,readUnpackGoBack, readHex, writeIntOrHex,copyKHFile,getGameVersion,PS3Version
 #Problem = The header can mess up the positioning of the sub-file.
 def findBarHeader(fileOpened):
     #This is mainly used for the PS3 version where the bar header can be offsetted by some random extra data.
@@ -79,22 +79,30 @@ def findHeaderinBAR(fileOpened,string,navigateToNewPos):
         return True
     else:
         return False
-def ModifyExtraFilePosition(fileBin,position,secondPosition): #PS3 Version Only
+def ModifyExtraFilePosition(fileBin,position): #PS3 Version Only
     #Extra files are at the end of the normal bar file.
+    #Position is assumed to have a bar offset total
+    #These extra files 99% of the time replace something already present in the bar file. HD textures & so on.
+    #File position of new file, file position of Old file, New file size.
     if PS3Version():
         oldPos = fileBin.tell();
-        fileBin.seek(4,0)
+        fileBin.seek(0,0)
+        barOffset=  findBarHeader(fileBin)
+        fileBin.seek(0, 0)
+        writeIntOrHex(fileBin,position-barOffset,4) #Write new bar size
         amtOfExtraFileEntries = readAndUnpack(fileBin,4)
         for x in range(amtOfExtraFileEntries):
             fileBin.seek(0x10 + (x*0x30), 0)
             fileBin.seek(0x20, 1) #skip string
             extraFilePos = readAndUnpack(fileBin,4) #Read position
-            offset = position-extraFilePos
+            offset = position-extraFilePos #New position minus old position ,getting
             fileBin.seek(-4, 1)  # go back
             extraFilePos += offset
             writeIntOrHex(fileBin,extraFilePos,4)
+            oldFileOldPos = readUnpackGoBack(fileBin, 4)
+            oldFileOldPos -= 0x20000000
             fileBin.write(b'\x20')
-            writeIntOrHex(fileBin,secondPosition,3)
+            writeIntOrHex(fileBin,oldFileOldPos+offset,3)
         fileBin.seek(oldPos,0)
 
 
@@ -131,3 +139,40 @@ def replaceAllStringInFile(fileBin,oldString,newString):
     fileBin.seek(0, 0)
     fileBin.write(alldata)
     fileBin.seek(oldPos, 0)
+def appendToSpecificPos(fileName,position,header,data): #Add new data to a specific position and update bar headers
+    fileBin_A = open(fileName, 'ab+')
+    fileBin_A.seek(position,0)
+    lastpos = fileBin_A.tell()
+    furtherData = fileBin_A.read()
+    fileBin_A.seek(lastpos,0)
+    fileBin_A.truncate()
+    newDataSize = len(data)
+    fileBin_A.write(data)
+    fileBin_A.write(furtherData)
+    fileBin_A.close()
+    fileBin_RW = open(fileName, 'rb+')
+    barHeaderPos = findBarHeader(fileBin_RW)
+    fileBin_RW.seek(barHeaderPos+0x4,0)
+    barEntries = readAndUnpack(fileBin_RW,4)
+    foundBarHeader = False
+    for x in range(barEntries):
+        fileBin_RW.seek(barHeaderPos+0x10+ (x*0x10),0)
+        fileBin_RW.seek(0x4,1)
+        barString = ReverseEndianString(fileBin_RW.read(4).decode().rstrip('\x00'),1,False)
+        if foundBarHeader:
+            OldPos = readUnpackGoBack(fileBin_RW,4)
+            OldPos+=newDataSize
+            writeIntOrHex(fileBin_RW, OldPos, 4)
+        if barString == header:
+            foundBarHeader = True
+            fileBin_RW.seek(0x4, 1)
+            OldSize = readUnpackGoBack(fileBin_RW,4)
+            OldSize+= newDataSize
+            writeIntOrHex(fileBin_RW,OldSize,4)
+    fileBin_RW.seek(barHeaderPos+0x10+((barEntries-1)*0x10),0)
+    fileBin_RW.seek(0x8,1)
+    LastPos = readAndUnpack(fileBin_RW,4)
+    LastSize = readAndUnpack(fileBin_RW,4)
+    TotalBarSize = LastPos+LastSize
+    ModifyExtraFilePosition(fileBin_RW,TotalBarSize+0x10) #add for total file offset
+

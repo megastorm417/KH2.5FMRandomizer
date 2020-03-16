@@ -3,6 +3,7 @@ import os.path
 import os
 import version
 import settings
+import khenum
 worldsToText = {
 'ES' : 'End of Sea',
 'TT' : 'Twilight Town',
@@ -77,34 +78,45 @@ outcomeList_CharacterLevelUps = Vividict()
 outcomeList_ItemShop = Vividict()
 chestOutcomeList =Vividict()
 stringFormatSize = "{:<40}"
-def writeOutCome_Enemy(world,room,uid,org,new,groupname):
+def writeOutCome_Enemy(world,room,uid,org,new,groupname,type,newType):
     orgName =  "???"
-    for x in enemy_table:
-        if(enemy_table[x][1] == org):
-            orgName = x
-    outcomeList_Worlds[worldsToText[world.upper()]][room][0][groupname][uid] = "OLD ENEM:" + stringFormatSize.format(orgName) + " NEW ENEM:" + stringFormatSize.format(new)
-def writeOutCome_Boss(world,room,uid,org,new,groupname):
-    orgName =  "???"
-    for x in boss_table:
-        if(boss_table[x][1] == org):
-            orgName = x
-    outcomeList_Worlds[worldsToText[world.upper()]][room][0][groupname][uid] = "OLD BOSS:" + stringFormatSize.format(orgName) + " NEW BOSS:" + stringFormatSize.format(new)
-def writeOutCome_SuperBoss(world,room,uid,org,new,groupname):
-    orgName =  "???"
-    for x in superBoss_table:
-        if(superBoss_table[x][1] == org):
-            orgName = x
-    outcomeList_Worlds[worldsToText[world.upper()]][room][0][groupname][uid] = "OLD SUPRBOSS:" + stringFormatSize.format(orgName) + " NEW SUPRBOSS:" + stringFormatSize.format(new)
-def writeOutCome_Ally(world,room,uid,org,new,groupname):
-    orgName =  ""
-    for x in ally_table:
-        if(ally_table[x][1] == org):
-            orgName = x
-    for x in ally_table:
-        if(ally_table[x][1] == new):
-            new = x
-    outcomeList_Worlds[worldsToText[world.upper()]][room][0][groupname][uid] = "OLD ALLY:" + stringFormatSize.format(orgName) + " NEW ALLY:" + stringFormatSize.format(new)
+    OldString = ''
+    NewString = ''
+    if type == khenum.enemyType.Normal:
+        OldString = 'Old Enemy:'
+        for x in enemy_table:
+            if(enemy_table[x][1] == org):
+                orgName = x
+    if type == khenum.enemyType.Boss:
+        OldString = 'Old Boss:'
+        for x in boss_table:
+            if(boss_table[x][1] == org):
+                orgName = x
 
+    if type == khenum.enemyType.SuperBoss:
+        OldString = 'Old SuperBoss:'
+        for x in superBoss_table:
+            if(superBoss_table[x][1] == org):
+                orgName = x
+
+    if type == khenum.enemyType.Ally:
+        OldString = 'Old Ally:'
+        for x in ally_table:
+            if(ally_table[x][1] == org):
+                orgName = x
+
+
+    if newType == khenum.enemyType.Normal:
+        NewString = 'New Enemy:'
+    if newType == khenum.enemyType.Boss:
+        NewString = 'New Boss:'
+    if newType == khenum.enemyType.SuperBoss:
+        NewString = 'New SuperBoss:'
+    if newType == khenum.enemyType.Ally:
+        NewString = 'New Ally:'
+
+
+    outcomeList_Worlds[worldsToText[world.upper()]][room][0][groupname][uid] = OldString + stringFormatSize.format(orgName) + " "+NewString + stringFormatSize.format(new)
 
 def writeOutCome_Chest(world,room,type,uid,org,new):
     #damn i suck at coding lmao
@@ -144,10 +156,8 @@ def printOutComeText():
                     writeATab(4)
                     file.write("GROUPNAME:" + groupname + "\n")
                     for ud in outcomeList_Worlds[x][r][enem][groupname]:
-                        writeATab(5)
-                        file.write("UniqueID:" + str(ud) + "\n")
                         writeATab(6)
-                        file.write("OUTPUTTED:" + outcomeList_Worlds[x][r][enem][groupname][ud] + "\n")
+                        file.write("UniqueID:" + "{:<4}".format(str(ud)) + "OUTPUTTED:" + outcomeList_Worlds[x][r][enem][groupname][ud] + "\n")
     file.write("Chests:" + "\n")
     for x in chestOutcomeList:
         writeATab(1)
@@ -159,10 +169,8 @@ def printOutComeText():
                 writeATab(3)
                 file.write("TYPE:" + str(enem) + "\n")
                 for ud in sorted(chestOutcomeList[x][r][enem]):
-                    writeATab(4)
-                    file.write("UniqueID:" + str(ud) + "\n")
                     writeATab(5)
-                    file.write("OUTPUTTED:" + chestOutcomeList[x][r][enem][ud] + "\n")
+                    file.write("UniqueID:" + "{:<4}".format(str(ud)) + "OUTPUTTED:" + chestOutcomeList[x][r][enem][ud] + "\n")
     file.write("Character Bonus Levels:" + "\n")
     for x in sorted(outcomeList_CharacterBonusLevel):
         writeATab(1)

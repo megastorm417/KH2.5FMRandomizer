@@ -151,8 +151,6 @@ def RandomizeBonusLevels(bonusLevelBool,bonusItemBool,critBonusBool,extraAbiliti
             for types in range(2):
                 if  len(filterListQuick(types)) != 0:
                     possibleChoices.append(types)
-                else:
-                    hidebug = 0
             if len(possibleChoices) != 0:
                 typeOfAbility = random.choice(possibleChoices)
                 newList = filterListQuick(typeOfAbility)
@@ -330,6 +328,7 @@ def RandomizeDriveFormAbilities(shouldIrandomize):
                                         name = AbilityList[AbilityTable_enum.Support][fromNewList].name
                                     else:
                                         name ='None.'
+                                        formData[formType][dt] = 0
 
                                 writeOutCome_BonusLevel(KHCharacter.Sora, formBonusNum, str(formType.name) + ":" +name)
                         formBonusNum += 1

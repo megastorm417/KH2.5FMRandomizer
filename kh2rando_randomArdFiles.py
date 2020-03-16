@@ -5,8 +5,8 @@ import struct
 import random
 
 from utils import writeRandomizationLog, readHex, readHexPure, readAndUnpack,readUnpackGoBack, fileByteToHexToList,writeFloat, writeIntOrHex,copyKHFile,offSetSeed,PS3Version,unpackfromBinaryByte
-from kh2rando_binUtils import findHeaderinBAR,ReverseEndianString,findBarHeader
-from kh2rando_writeRandoOutcome import writeOutCome_Enemy,writeOutCome_Boss,writeOutCome_SuperBoss,writeOutCome_Ally
+from kh2rando_binUtils import findHeaderinBAR,ReverseEndianString,findBarHeader,appendToSpecificPos
+from kh2rando_writeRandoOutcome import writeOutCome_Enemy
 from kh2rando_enemyTable import blackListUniqueID_Enemy,blackListGroup_Enemy,bossMSNTable,superBoss_table,boss_table,enemy_table,ally_table,blackListUCM_List,UCMProperties
 from kh2rando_msnFile import msnFileCreate,msnFileCreate_NonBoss
 from kh2rando_musicList import musicList,blackList_musicID
@@ -14,7 +14,7 @@ from kh2rando_musicList import musicList,blackList_musicID
 from kh2rando_ucmObject import NewEnemyList,NewBossList,NewSuperBossList,NewAllyList
 from khenum import enemyMemoryUsage,enemyType
 import math
-
+import copy
 class SpawnData:
 
     def __init__(self,noUCMSpawn=0,noLocationSpawn=0,noExtraData=0,noExtraData2=0,noExtraData3=0,positionInFile=0):
@@ -93,14 +93,20 @@ def replaceableUCMproperty(UCM,Type):
     else:
         return True
 def initVar():
-    global EnemyList,BossList,SuperBossList,AllyList
+    global EnemyList,BossList,SuperBossList,AllyList,SuperBossList_Non
     EnemyList = NewEnemyList()
     BossList = NewBossList()
     SuperBossList = NewSuperBossList()
     SuperBossList = filterUcmProperty(SuperBossList)
+    SuperBossList_Non = copy.deepcopy(SuperBossList)
     AllyList = NewAllyList()
-def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForced,PS2EnemyOptimizations):
-
+def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForced,PS2EnemyOptimizations,SuperBossEncounterRate):
+    """
+    Bosses when doing their DM go to the 0,0,0 XYZ point in the map
+    Which sucks cause we have two options:
+    Move the map data to a better location and also re adjust positions somehow
+    Remove DMs from the boss
+    """
     def FixMulanMSNSoftlock():
         findHeaderinBAR(fileBin, 'btl', True)
         stringToFind = ReverseEndianString('MU02_MS103B', 2, True,True).encode()
@@ -121,7 +127,10 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
         ???
         Probably controls when enemies should attack during the camera movement phase
         Anything Else after these two entries:
-        Camera Movement & Panning at the start of the mission 
+        Camera Movement & Panning at the start of the mission
+        Camera Movement & Panning when a boss dies or something fails
+        The graphical effect when you defeat a boss
+        ^ intrestingly unique for many fights. Take a look at Lingering Will's defeat camera and effect VS when roxas is defeated
         What images should be displayed EX: Luxord time bar, Mulan's Heartless Count and Motivation bar
         
         Seems like how enemies should spawn in is determined by ARD files not by MSN files
@@ -301,8 +310,7 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                         UCM = readAndUnpack(fileBin, 4)
                                         if CheckIfEnemyTypeInTable(UCM, enemy_table) and randomizeEnemies:
                                             # find weight of enemyenemiesMaxWrittenUsage
-                                            memUsageFound = list(filter(lambda x: (x.code == UCM), EnemyList))[
-                                                0].memoryUsage
+                                            memUsageFound = list(filter(lambda x: (x.code == UCM), EnemyList))[0].memoryUsage
                                             enemiesMaxWrittenUsage[memUsageFound] += 1
                                             if UCM not in uniqueEnemyList:
                                                 enemiesUniqueMaxWrittenUsage[memUsageFound] += 1
@@ -368,8 +376,33 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 BeforeReplaced = ReverseEndianString(BeforeReplaced,2,True)
                                                 fileBin.seek(-0x20, 1)
 
-                                                beforeEncode = newMSN
-                                                beforeEncode = msnFileCreate(beforeEncode,currentWorld,currentRoom,BeforeReplaced)
+                                                beforeEncode = msnFileCreate(newMSN,currentWorld,currentRoom,BeforeReplaced)
+
+                                                """
+                                                All of this doesn't work when trying to fix Final Xemnas MSN softlocking. Great.
+                                                exportFolderName = "msn/jp/"
+                                                if PS3Version():
+                                                    exportFolderName = "msn/us/"
+                                                fileBin_MSN = open(exportFolderName + beforeEncode+'.bar','rb+')
+                                                findHeaderinBAR(fileBin_MSN,newMSN[:4],True)
+                                                fileBin_MSN.write(bytearray([0x00, 0x02, 0x01 ,0x11 ,0x11 ,0x71]))
+                                                findHeaderinBAR(fileBin_MSN, newMSN[:4], False)
+                                                fileBin_MSN.seek(0x4+0x4,1)
+                                                barSize = readAndUnpack(fileBin_MSN,4)
+                                                findHeaderinBAR(fileBin_MSN, newMSN[:4], True)
+                                                fileBin_MSN.seek(barSize,1)
+                                                beforePos = fileBin_MSN.tell()
+                                                findHeaderinBAR(fileBin_MSN,newMSN[:4],False)
+                                                fileBin_MSN.seek(0x10 + 0x4,1) #Skip down an entry and move to New location
+                                                newPos = readAndUnpack(fileBin_MSN,4)
+                                                offsetPos = findBarHeader(fileBin_MSN)
+                                                fileBin_MSN.seek(newPos+offsetPos,0)
+                                                writingString = 'eh20_ms113'.ljust(0x10,'\x00').encode() #Write new mission objective
+                                                fileBin_MSN.write(writingString)
+                                                fileBin_MSN.close()
+                                                appendToSpecificPos(exportFolderName + beforeEncode+'.bar',beforePos,newMSN[:4],bytearray([0x08, 0xD1, 0x00, 0x04 ,0x00 ,0x00, 0x00, 0x00]))
+                                                """
+
                                                 beforeEncode = ReverseEndianString(beforeEncode, 2, True,True)
                                                 spacingNum = 0x20 - len(beforeEncode)
                                                 # note: we should add extra bytes based on length so we dont offset the file if we replace stuff
@@ -381,6 +414,10 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 fileBin.seek(-len(replace2), 1) #Write, go back and we're done.
 
 
+
+
+
+                                            #eh20_ms113 == replace ms_boss if the final boss mission is being replaced EH20_MS113.bar
                                             #end of utility functions. start of main function
                                             #This maybe need to be looked at again.
                                             btl_String = 'btl'
@@ -419,30 +456,39 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 offset = 1
                                             fileBin.seek(seekToRead+offset, 1)
                                             testRead = fileBin.read(0x20)
+                                            testRead = ReverseEndianString(testRead.decode('utf-8'),2,True).rstrip('\x00')
                                             fileBin.seek(-0x20, 1)
-                                            if ReverseEndianString(testRead.decode('utf-8'),2,True).rstrip('\x00') == "HB38_FM_MAR":
-                                                replaceOneMSN("HB33_FM_LAR")
-                                                enemyBTLMSNEdit()  # Try again......
-                                            else:
-                                                for x in bossMSNTable:
-                                                    if enemyToWrite.code == x:
-                                                        replaceOneMSN(bossMSNTable[x])
+                                            if not testRead == 'EH20_MS113':  # Final Xemnas Specific dont edit
+                                                if  testRead== "HB38_FM_MAR" or testRead == 'CA01_MS204': #Replace Marluxia MSN as it softlocks at the start of battle and Grim Reaper Mission cause it crashes on PS3
+                                                    replaceOneMSN("HB33_FM_LAR") #Generic Battle MSN file
+                                                    enemyBTLMSNEdit()  # Try again......
+                                                else:
+                                                    for x in bossMSNTable:
+                                                        if enemyToWrite.code == x:
+                                                            replaceOneMSN(bossMSNTable[x])
+
+
+
 
 
                                         if CheckIfEnemyTypeInTable(UCM, boss_table) and ( DataBoss2 != 1) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.Boss):
-                                            if currentWorld.upper() == 'HB' and currentRoom == '33':
-                                                hiDebug = 0
                                             # get Random boss UCM value here!
-                                            enemyToWrite = random.choices(filteredBossList, bossListWeights)
-                                            enemyToWrite = enemyToWrite[0]
-                                            if UCM != enemyToWrite.code:
-                                                index = filteredBossList.index(enemyToWrite)
-                                                bossListWeights[index] *= 0.56  # Decrease weight of object we just spawned for lesser chance of being picked next time
+
+
+                                            if random.random() < 0.07*SuperBossEncounterRate and SuperBossEncounterRate > 0:
+                                                enemyToWrite =  random.choices(SuperBossList_Non,k=1)[0]
                                                 writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                                 fileBin.seek(position, 0)
+                                            else:
+                                                enemyToWrite = random.choices(filteredBossList, bossListWeights)[0]
+                                                if UCM != enemyToWrite.code:
+                                                    index = filteredBossList.index(enemyToWrite)
+                                                    bossListWeights[index] *= 0.26  # Decrease weight of object we just spawned for lesser chance of being picked next time
+                                                    writeIntOrHex(fileBin, enemyToWrite.code, 4)
+                                                    fileBin.seek(position, 0)
 
-                                            ucmPropertyModify(enemyToWrite.code, enemyType.Boss)
-                                            writeOutCome_Boss(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check)
+                                            ucmPropertyModify(enemyToWrite.code, enemyToWrite.type)
+                                            writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check,enemyType.Boss,enemyToWrite.type)
                                             enemyBTLMSNEdit()
                                         elif CheckIfEnemyTypeInTable(UCM, enemy_table) and randomizeEnemies and replaceableUCMproperty(UCM,enemyType.Normal):
                                             # Get random Enemy UCM value here!
@@ -468,10 +514,9 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                             enemyToWrite = currentEnemyList[0]
                                             randomenemiesWrittenUsage[enemyToWrite.memoryUsage] += 1
                                             EnemiesWrote+=1
-                                            ucmPropertyModify(enemyToWrite.code, enemyType.Normal)
+                                            ucmPropertyModify(enemyToWrite.code, enemyToWrite.type)
                                             writeIntOrHex(fileBin, enemyToWrite.code, 4)
-                                            writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM,
-                                                               enemyToWrite.name, check)
+                                            writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM,enemyToWrite.name, check,enemyType.Normal,enemyToWrite.type)
                                             if enemyToWrite.code not in randomizedUniqueEnemyListcodes:
                                                 randomEnemiesUniqueWrittenUsage[enemyToWrite.memoryUsage] += 1
                                                 randomizedUniqueEnemyList.append(enemyToWrite)
@@ -489,8 +534,8 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                                 writeIntOrHex(fileBin, enemyToWrite.code, 4)
                                                 fileBin.seek(position, 0)
 
-                                            ucmPropertyModify(enemyToWrite.code, enemyType.SuperBoss)
-                                            writeOutCome_SuperBoss(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check)
+                                            ucmPropertyModify(enemyToWrite.code, enemyToWrite.type)
+                                            writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check,enemyType.SuperBoss,enemyToWrite.type)
                                             enemyBTLMSNEdit()
                                         elif CheckIfEnemyTypeInTable(UCM, ally_table) and randomizeBosses and replaceableUCMproperty(UCM,enemyType.Ally):
                                             curEnemyList = filterUcmProperty(AllyList)
@@ -500,7 +545,7 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
                                             enemyToWrite = curEnemyList[0]
                                             ucmPropertyModify(enemyToWrite.code, enemyType.Ally)
                                             writeIntOrHex(fileBin, enemyToWrite.code, 4)
-                                            writeOutCome_Ally(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.code, check)
+                                            writeOutCome_Enemy(currentWorld, int(currentRoom), UniqueEnemyID, UCM, enemyToWrite.name, check,enemyType.Ally,enemyToWrite.type)
                                         elif UCM == 0x5AB and KH2SoraForced:
                                             # replace roxas skateboards with sora
                                             writeIntOrHex(fileBin, 0x81A, 4)
@@ -674,48 +719,59 @@ def removeEnemySpawnLimit(EnemiesWereRandomized):
                         writeIntOrHex(fileBin,enemyWeightValue,1) #Write lower spawn limit value!
 
 
+class KHMDL:
+    def __init__(self,ModelUsedPath):
+        if copyKHFile(ModelUsedPath):
+            self.file = open(ModelUsedPath,'rb+')
+        self.ModelUsedPath = ModelUsedPath
 
+    def removeAIFunction(self,stringParameter):
+        #Same for PS3 Version.
+            string = b'\x00' + stringParameter.encode('utf-8') + b'\x00'
+            entireFile =  self.file.read()
+            if string in entireFile:
+                replaceString = len(string) * b'\x00'
+                entireFile = entireFile.replace(string,replaceString)
+                self.file.seek(0,0)
+                self.file.write(entireFile)
+                self.file.seek(0, 0)
+            #Size: 0x60 file
+            #Two strings, both total size of 0x20 Bytes
+            #Get Spawnlimiter Value
+            #Modify object entry if string starts with M_
+    def __del__(self):
+        self.file.close()
 def removeDMFromBosses():
     #here we will remove ai functions from bosses that are problematic.
-    removeAIFunction('obj/B_EX170.mdlx','rc_invitation_to_dark') #Remove xemnas skyscraper rc battle thing
-    removeAIFunction('obj/B_EX170.mdlx','warp_building_front')
-    removeAIFunction('obj/B_EX170_LV99.mdlx','rc_invitation_to_dark') #Do it for data xemnas
-
-    removeAIFunction('obj/B_EX140.mdlx','change_space_battle') #Get rid of Xigbar room changing aspects
-    removeAIFunction('obj/B_EX140.mdlx','change_space') #Get rid of Xigbar room changing aspects
+    XemnasModel = KHMDL('obj/B_EX170.mdlx')
+    XemnasModel.removeAIFunction('rc_invitation_to_dark') #Remove xemnas skyscraper rc battle thing
+    XemnasModel.removeAIFunction('warp_building_front')
+    XigbarModel = KHMDL('obj/B_EX140.mdlx')
+    XigbarModel.removeAIFunction('change_space_battle') #Get rid of Xigbar room changing aspects
+    XigbarModel.removeAIFunction('change_space') #Get rid of Xigbar room changing aspects
+    SarkModel = KHMDL('obj/N_TR010_BTL.mdlx')
+    SarkModel.removeAIFunction('warp')
+    SarkModel.removeAIFunction('warp_move')
+    SarkModel.removeAIFunction('warp_fall')
+    SarkModel.removeAIFunction('warp_start')
+    SarkModel.removeAIFunction('back_warp')
+    SarkModel.removeAIFunction('back_warp_fall')
+    SarkModel.removeAIFunction('back_warp_start')
 
     if PS3Version():
-        removeAIFunction('obj/B_BB110.mdlx','‰sora_downshock!') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','sora_spin!') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','spin_hit') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','chandelier_camera?') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','rc_step_jump') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','hop') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','reaction') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','spin_hit_start') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','revenge_catch_wait') #Dark Thorn Boss
-        removeAIFunction('obj/B_BB110.mdlx','battle_catch_wait') #Dark Thorn Boss
+        DarkThornModel = KHMDL('obj/B_BB110.mdlx')
+        DarkThornModel.removeAIFunction('‰sora_downshock!') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('sora_spin!') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('spin_hit') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('chandelier_camera?') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('rc_step_jump') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('hop') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('reaction') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('spin_hit_start') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('revenge_catch_wait') #Dark Thorn Boss
+        DarkThornModel.removeAIFunction('battle_catch_wait') #Dark Thorn Boss
 
-
-
-        removeAIFunction('obj/N_HB630.mdlx','battle_start') #Sephiroth RC first attack crash
-        removeAIFunction('obj/N_HB630.mdlx','rc_success') #Sephiroth RC first attack crash
-        removeAIFunction('obj/N_HB630.mdlx','atk_split_flash') #Sephiroth RC first attack crash
-def removeAIFunction(file,string):
-    #Same for PS3 Version.
-    if copyKHFile(file):
-        fileBin = open(file, 'rb+')
-        string = b'\x00' + string.encode('utf-8') + b'\x00'
-        entireFile = fileBin.read()
-        if string in entireFile:
-            replaceString = len(string) * b'\x00'
-            entireFile = entireFile.replace(string,replaceString)
-            fileBin.seek(0,0)
-            fileBin.write(entireFile)
-            fileBin.close()
-        else:
-            fileBin.close()
-        #Size: 0x60 file
-        #Two strings, both total size of 0x20 Bytes
-        #Get Spawnlimiter Value
-        #Modify object entry if string starts with M_
+        SephirothModel = KHMDL('obj/N_HB630.mdlx')
+        SephirothModel.removeAIFunction('battle_start') #Sephiroth RC first attack crash
+        SephirothModel.removeAIFunction('rc_success') #Sephiroth RC first attack crash
+        SephirothModel.removeAIFunction('atk_split_flash') #Sephiroth RC first attack crash
