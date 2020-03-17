@@ -10,7 +10,7 @@ from kh2rando_writeRandoOutcome import writeOutCome_Enemy
 from kh2rando_enemyTable import blackListUniqueID_Enemy,blackListGroup_Enemy,bossMSNTable,superBoss_table,boss_table,enemy_table,ally_table,blackListUCM_List,UCMProperties
 from kh2rando_msnFile import msnFileCreate,msnFileCreate_NonBoss
 from kh2rando_musicList import musicList,blackList_musicID
-
+from kh2rando_mapReplacer import KHMapReplacer
 from kh2rando_ucmObject import NewEnemyList,NewBossList,NewSuperBossList,NewAllyList
 from khenum import enemyMemoryUsage,enemyType
 import math
@@ -208,6 +208,7 @@ def RandomizeARD(randomizeEnemies, randomizeBosses,randomizeAllies, KH2SoraForce
     msnFileList = getAllFileNamesInFolder(path2)
     if randomizeBosses:
         removeDMFromBosses()
+        KHMapReplacer().ReplaceMAP('hb32','tt14')
     for j in fileList:
         EntryName = []
         EntryPositions = []
@@ -743,12 +744,16 @@ class KHMDL:
         self.file.close()
 def removeDMFromBosses():
     #here we will remove ai functions from bosses that are problematic.
-    XemnasModel = KHMDL('obj/B_EX170.mdlx')
-    XemnasModel.removeAIFunction('rc_invitation_to_dark') #Remove xemnas skyscraper rc battle thing
-    XemnasModel.removeAIFunction('warp_building_front')
-    XigbarModel = KHMDL('obj/B_EX140.mdlx')
-    XigbarModel.removeAIFunction('change_space_battle') #Get rid of Xigbar room changing aspects
-    XigbarModel.removeAIFunction('change_space') #Get rid of Xigbar room changing aspects
+    XemnasMDLFiles = ['obj/B_EX170.mdlx','obj/B_EX170_LV99.mdlx']
+    for x in XemnasMDLFiles:
+        XemnasModel = KHMDL(x)
+        XemnasModel.removeAIFunction('rc_invitation_to_dark') #Remove xemnas skyscraper rc battle thing
+        XemnasModel.removeAIFunction('warp_building_front')
+    XigbarMDLfiles = ['obj/B_EX140.mdlx','obj/B_EX140_LV99.mdlx']
+    for x in XigbarMDLfiles:
+        XigbarModel = KHMDL(x)
+        XigbarModel.removeAIFunction('change_space_battle') #Get rid of Xigbar room changing aspects
+        XigbarModel.removeAIFunction('change_space') #Get rid of Xigbar room changing aspects
     SarkModel = KHMDL('obj/N_TR010_BTL.mdlx')
     SarkModel.removeAIFunction('warp')
     SarkModel.removeAIFunction('warp_move')

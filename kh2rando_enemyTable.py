@@ -333,7 +333,7 @@ UCMProperties = { #Use this to set some properties of certain UCMS. (Use this en
     UCMProperty(0x81F,enemyType.Boss,extraEnemyData=1), #Xemnas will not appear otherwise
     #Org 13 Superboss Properties
     UCMProperty(0x9C4,enemyType.SuperBoss,extraEnemyData=1),
-    UCMProperty(0x9C5,enemyType.SuperBoss,extraEnemyData=1),
+    UCMProperty(0x9C5,enemyType.SuperBoss,extraEnemyData=0,extraEnemyData2=0), #Xigbar extra ai should be 0
     UCMProperty(0x9C6,enemyType.SuperBoss,extraEnemyData=1),
     UCMProperty(0x9C8,enemyType.SuperBoss,extraEnemyData=1),
     UCMProperty(0x9C9,enemyType.SuperBoss,extraEnemyData=1),

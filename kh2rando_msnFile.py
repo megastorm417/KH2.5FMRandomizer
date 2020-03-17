@@ -14,6 +14,7 @@ regionFolders = {
 def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission file name, and the current room and world & will return the new Filename
     #lets check if the filename is equal to currentworld or currentroom
     #Lets also check if a mission file ID (last 3 digits) is already present in a room, otherwise we will overwrite something we wouldnt want to and have the player softlock
+    fileExtension = '.bar'
     oldMsnFileName = oldMsnFileName.rstrip(' \t\r\n\0')
     if (fileName[:4] == curWorld.upper() + curRoom.upper() ):
         return fileName #We dont need to do anything in this case.
@@ -25,13 +26,13 @@ def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission 
     exportFolderName = "msn/jp/"
     if PS3Version():
         exportFolderName = "msn/us/"
-    if (os.path.isfile(importFolderName + fileName+ ".bar")):
+    if (os.path.isfile(importFolderName + fileName+ fileExtension)):
         if not os.path.exists(exportFolderName):
             os.makedirs(exportFolderName)
         try:
-            fileBin = open(importFolderName+oldMsnFileName.rstrip()+".bar",'rb+')
+            fileBin = open(importFolderName+oldMsnFileName.rstrip()+fileExtension,'rb+')
         except FileNotFoundError:
-            fileBin = open(exportFolderName + oldMsnFileName + ".bar", 'rb+')
+            fileBin = open(exportFolderName + oldMsnFileName + fileExtension, 'rb+')
         barOffset = findBarHeader(fileBin)
         fileBin.seek(barOffset+0x18,0) #Skip to first header and get pos
         newPos = readAndUnpack(fileBin, 4)
@@ -39,12 +40,12 @@ def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission 
         fileBin.seek(0xD, 1)
         oldBonusLevel = readAndUnpack(fileBin, 1)
         fileBin.close()
-        shutil.copyfile(importFolderName + fileName+ ".bar", exportFolderName + newFileName + ".bar")
+        shutil.copyfile(importFolderName + fileName+ fileExtension, exportFolderName + newFileName + fileExtension)
         print("Copying file...")
-        writeRandomizationLog(exportFolderName + newFileName + ".bar")
+        writeRandomizationLog(exportFolderName + newFileName + fileExtension)
 
 
-        fileBin = open(exportFolderName + newFileName + ".bar",'rb+') #Modify file to use correct bonus level.
+        fileBin = open(exportFolderName + newFileName + fileExtension,'rb+') #Modify file to use correct bonus level.
         ModifyExtraFileNames(fileBin,fileName,newFileName)
         #replaceAllStringInFile(fileBin,fileName.lower(),newFileName.lower())
         findHeaderinBAR(fileBin,fileName[:4],True)
@@ -53,10 +54,10 @@ def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission 
         fileBin.close()
         if PS3Version():
             for x in regionFolders:
-                filestring = 'msn/' + x + "/" + newFileName + '.bar'
+                filestring = 'msn/' + x + "/" + newFileName + fileExtension
                 if not os.path.exists('msn/' + x + '/'):
                     os.makedirs('msn/' + x + '/')
-                shutil.copyfile(exportFolderName + newFileName + ".bar", filestring)
+                shutil.copyfile(exportFolderName + newFileName + fileExtension, filestring)
                 print("Copying file for another region...")
                 writeRandomizationLog(filestring)
 
@@ -66,6 +67,7 @@ def msnFileCreate(fileName,curWorld,curRoom,oldMsnFileName): #pass in a mission 
         print("Couldn't find msn file to copy...")
         return fileName
 def msnFileCreate_NonBoss(oldMsnFileName): #Non boss version of creating a mission file
+    fileExtension = '.bar'
     oldMsnFileName = oldMsnFileName.rstrip(' \t\r\n\0')
     newFileName = oldMsnFileName + '_R' #Add _R so we dont overwrite missions (_R == Randomized)
     importFolderName = "export/KH2/msn/jp/"
@@ -74,27 +76,27 @@ def msnFileCreate_NonBoss(oldMsnFileName): #Non boss version of creating a missi
     exportFolderName = "msn/jp/"
     if PS3Version():
         exportFolderName = "msn/us/"
-    if os.path.isfile(importFolderName + oldMsnFileName+ ".bar"):
-        shutil.copyfile(importFolderName + oldMsnFileName+ ".bar", exportFolderName + newFileName + ".bar")
+    if os.path.isfile(importFolderName + oldMsnFileName+ fileExtension):
+        shutil.copyfile(importFolderName + oldMsnFileName+ fileExtension, exportFolderName + newFileName + fileExtension)
         print("Copying file...")
-        writeRandomizationLog(exportFolderName + newFileName + ".bar")
+        writeRandomizationLog(exportFolderName + newFileName + fileExtension)
 
-        fileBin = open(exportFolderName + newFileName + ".bar",'rb+')
+        fileBin = open(exportFolderName + newFileName + fileExtension,'rb+')
 
         ModifyExtraFileNames(fileBin,oldMsnFileName,newFileName)
         #replaceAllStringInFile(fileBin,fileName.lower(),newFileName.lower())
         fileBin.close()
         if PS3Version():
             for x in regionFolders:
-                filestring = 'msn/' + x + "/" + newFileName + '.bar'
+                filestring = 'msn/' + x + "/" + newFileName + fileExtension
                 if not os.path.exists('msn/' + x + '/'):
                     os.makedirs('msn/' + x + '/')
-                shutil.copyfile(exportFolderName + newFileName + ".bar", filestring)
+                shutil.copyfile(exportFolderName + newFileName + fileExtension, filestring)
                 print("Copying file for another region...")
                 writeRandomizationLog(filestring)
 
 
-        return exportFolderName + newFileName + ".bar"
+        return exportFolderName + newFileName + fileExtension
     else:
         print("Couldn't find msn file to copy...")
-        return importFolderName + oldMsnFileName+ ".bar"
+        return importFolderName + oldMsnFileName+ fileExtension
