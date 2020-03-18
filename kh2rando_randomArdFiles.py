@@ -775,8 +775,3 @@ def removeDMFromBosses():
         DarkThornModel.removeAIFunction('spin_hit_start') #Dark Thorn Boss
         DarkThornModel.removeAIFunction('revenge_catch_wait') #Dark Thorn Boss
         DarkThornModel.removeAIFunction('battle_catch_wait') #Dark Thorn Boss
-
-        SephirothModel = KHMDL('obj/N_HB630.mdlx')
-        SephirothModel.removeAIFunction('battle_start') #Sephiroth RC first attack crash
-        SephirothModel.removeAIFunction('rc_success') #Sephiroth RC first attack crash
-        SephirothModel.removeAIFunction('atk_split_flash') #Sephiroth RC first attack crash

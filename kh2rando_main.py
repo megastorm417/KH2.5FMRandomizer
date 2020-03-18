@@ -16,7 +16,7 @@ from kh2rando_chests import RandomizeChestContents
 from kh2rando_randomArdFiles import RandomizeARD,randomizeMusic,removeEnemySpawnLimit
 from kh2rando_levelRandom import RandomizeBonusLevels,RandomizeLevelUps,ReduceFormGrinding,RandomizeDriveFormAbilities,RandomizeCriticalBonusAbilities
 from kh2rando_writeRandoOutcome import printOutComeText
-from kh2rando_miscAdjustments import setSoraPartyMembers,skipGummiShipMissions,giveHUDElements
+from kh2rando_miscAdjustments import setSoraPartyMembers,skipGummiShipMissions,giveHUDElements,skipCredits
 from kh2rando_gameTextInfo import TwilightTownTutText,worldMapGummiShipTxtSkip
 from kh2rando_itemDrop import randomizeItemDrops
 from kh2rando_equipmentRandom import randomizeEquipmentStats
@@ -160,6 +160,7 @@ def randomizeNewRun():
                 randomizeEquipmentStats(cfg.config["variables"].getboolean("RandomizeEquipmentStats"),cfg.config["variables"].getboolean("RandomizeEquipmentAbilities"))
                 removeEnemySpawnLimit(cfg.config["variables"].getboolean("RandomizeEnemies"))
                 skipGummiShipMissions(cfg.config['variables'].getboolean("SkipGummishipMission"))
+                skipCredits(cfg.config['variables'].getboolean("SkipCredits"))
                 #giveHUDElements()
                 setSoraPartyMembers(cfg.config["variables"].getboolean("KH2SoraForced"))
                 gui.setProgressBar(40)

@@ -276,6 +276,12 @@ def mainGui():
                                      listItemNum, 0)
         listItemNum += 1
         createARandomizeToggleButton(frames['MiscToggles'],
+                                     "Skip Credits",
+                                     'SkipCredits',
+                                     'Skip the long credits.',
+                                     listItemNum, 0)
+        listItemNum += 1
+        createARandomizeToggleButton(frames['MiscToggles'],
                                      "Enemy optimiziations",
                                      'EnemyOptimizations',
                                      'While this is on, enemies are categorized into low, medium and high memory objects.\nTurn this off if you want completely random enemies for every spawn.\nHowever, Turning this off may cause bugs with spawning enemies .',
@@ -350,7 +356,7 @@ def mainGui():
     #KH_Label.pack()
     frames['OuterFrame'] = Frame(main_Window)
     frames['OuterFrame'].pack(side=BOTTOM)
-    notebook_kh = Notebook(main_Window,width=512,height=312,padding=5)
+    notebook_kh = Notebook(main_Window,width=512,height=384,padding=5)
     notebook_kh.pack()
     #frames['randomizeTab'] = ttk.Frame(notebook)
     frames['optionTab'] = Frame(notebook_kh, relief=RIDGE, borderwidth=3)

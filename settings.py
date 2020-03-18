@@ -19,12 +19,14 @@ config["variables"] ={
         "RandomizeBonusItems" : True,
         "RandomizeCritBonusAbilities" : True,
         "SkipGummishipMission" : True,
+        "SkipCredits" : True,
         "GuardFirst" : True,
         "EnemyOptimizations" : True,
         "RandomizeItemDrop" : True,
         "RandomizeItemDropPercentage" : True,
         "RandomizeEquipmentStats" : True,
         "RandomizeEquipmentAbilities" : True,
+
     }
 config['intvars'] = {
 

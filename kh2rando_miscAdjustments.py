@@ -36,6 +36,34 @@ def skipGummiShipMissions(doItOrNot):
                 fileBin.write(bytearray(skipCode))
                 print("Done!")
                 fileBin.close()
+
+def skipCredits(doItOrNot):
+    #set roxas and kh1 sora to kh2 sora
+    if doItOrNot:
+        regionExtraFolder = ""
+        if PS3Version():
+            regionExtraFolder = "us/"
+        filename = "ard/" + regionExtraFolder + 'eh20.ard'
+        print("Skipping credits...")
+        if copyKHFile(filename):
+            fileBin = open(filename,'rb+')
+            if (fileBin):
+                #BytesToWrite =   01 40
+                if not PS3Version():
+                    fileBin.seek(0x7c0,0) #Go to map event location and change from 33 to 3C
+                else:
+                    fileBin.seek(0x7f8, 0)  # Diff spot in PS3 version
+
+                writeIntOrHex(fileBin,1,2) #
+                writeIntOrHex(fileBin,0,2) #
+                writeIntOrHex(fileBin,0x05,2) #
+                writeIntOrHex(fileBin,1,2) #
+                writeIntOrHex(fileBin,0,2) #
+                writeIntOrHex(fileBin,0,2) #
+                writeIntOrHex(fileBin,5,2) #
+                writeIntOrHex(fileBin,0x4001,2) #
+                print("Done!")
+                fileBin.close()
 def giveHUDElements():
     pass #Don't do this for now, it sets all battle levels of worlds to lvl 1 which makes things too easy.
     """ progressBin data
